@@ -7,35 +7,78 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        @media (min-width: 1024px) {
-            #sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-            }
+        /* Base styles for responsiveness and utility */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; 
+            overflow-x: hidden; /* Prevent horizontal scroll on mobile menu slide */
         }
-        #timer-display { font-variant-numeric: tabular-nums; }
+        
+        /* Mobile Timer Display Optimization */
+        #timer-display { 
+            font-variant-numeric: tabular-nums; 
+            font-size: 5rem; /* Default for small screens */
+            line-height: 1; 
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            #timer-display { font-size: 7rem; }
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            #timer-display { font-size: 8rem; }
+        }
+        @media (min-width: 1024px) { /* lg breakpoint - desktop size */
+            #timer-display { font-size: 9rem; }
+        }
+
+        /* Input field clean up */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
         input[type="number"] { -moz-appearance: textfield; }
-        .conversion-input { padding-right: 3rem !important; }
+        
+        /* Hide sidebar on mobile by default (controlled by JS toggle) */
+        /* On desktop, keep it fixed */
+        @media (min-width: 1024px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(0) !important; /* Ensure desktop is always visible */
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
+    <!-- Mobile Header/Toggle Bar -->
+    <header class="lg:hidden bg-blue-700 text-white p-4 shadow-xl flex justify-between items-center sticky top-0 z-20">
+        <h1 class="text-xl font-extrabold">Student Hub</h1>
+        <button id="mobile-menu-toggle" class="p-2 rounded-lg bg-blue-600 hover:bg-blue-800 transition duration-150 transform active:scale-95">
+            <!-- Menu Icon -->
+            <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+            <!-- Close Icon (Initially hidden) -->
+            <svg id="close-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </header>
+
     <div class="lg:flex">
-        <!-- Sidebar Navigation -->
-        <nav id="sidebar" class="bg-white lg:w-64 border-b lg:border-r lg:border-b-0 p-4 shadow-lg lg:shadow-xl z-10">
-            <h1 class="text-2xl font-extrabold text-blue-700 mb-6 text-center lg:text-left">
+        <!-- Sidebar Navigation (Responsive: Fixed Off-Canvas on Mobile, Fixed On-Screen on Desktop) -->
+        <nav id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 border-r p-4 shadow-2xl z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+            
+            <!-- Desktop Title -->
+            <h1 class="hidden lg:block text-2xl font-extrabold text-blue-700 mb-6 text-center lg:text-left">
                 Student Hub
             </h1>
-            <div class="flex flex-col space-y-2">
-                <button data-page="home-view" class="nav-btn p-3 rounded-xl text-left font-semibold text-gray-700 hover:bg-blue-50 transition duration-150 flex items-center bg-blue-100 text-blue-700">
+            
+            <div class="flex flex-col space-y-2 pt-10 lg:pt-0">
+                <button data-page="home-view" class="nav-btn p-3 rounded-xl text-left font-semibold hover:bg-blue-50 transition duration-150 flex items-center bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
                     Dashboard
                 </button>
@@ -54,8 +97,11 @@
             </div>
         </nav>
 
+        <!-- Overlay for mobile menu -->
+        <div id="sidebar-overlay" class="hidden lg:hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-20" onclick="toggleMobileMenu()"></div>
+
         <!-- Main Content Area -->
-        <main class="flex-grow p-4 lg:ml-64 lg:p-10">
+        <main class="flex-grow p-4 pt-4 lg:ml-64 lg:p-10">
             <div class="max-w-3xl mx-auto">
                 
                 <!-- Custom Alert/Message Box -->
@@ -74,25 +120,25 @@
                 </div>
 
                 <!-- 1. Home View -->
-                <section id="home-view" class="page-view bg-white rounded-3xl shadow-xl p-8 border-t-8 border-blue-500">
-                    <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Welcome, Student!</h2>
-                    <p class="text-xl text-gray-600 mb-8">Your focused toolkit for academic success and productivity.</p>
+                <section id="home-view" class="page-view bg-white rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 border-t-8 border-blue-500">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Welcome, Student!</h2>
+                    <p class="text-lg md:text-xl text-gray-600 mb-8">Your focused toolkit for academic success and productivity.</p>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div onclick="switchPage('timer-view')" class="p-6 bg-red-50 rounded-xl shadow-md hover:shadow-lg transition duration-300 cursor-pointer border border-red-200">
-                            <h3 class="text-2xl font-bold text-red-700 mb-2">Focus Timer</h3>
-                            <p class="text-gray-600">Use the Pomodoro technique to study in focused sprints and take mindful breaks.</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-red-700 mb-2">Focus Timer</h3>
+                            <p class="text-gray-600 text-sm md:text-base">Use the Pomodoro technique to study in focused sprints and take mindful breaks.</p>
                         </div>
                         <div onclick="switchPage('calculator-view')" class="p-6 bg-green-50 rounded-xl shadow-md hover:shadow-lg transition duration-300 cursor-pointer border border-green-200">
-                            <h3 class="text-2xl font-bold text-green-700 mb-2">Student Calculator</h3>
-                            <p class="text-gray-600">Quickly convert your CGPA/CPI to Percentage and calculate raw score percentages.</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-green-700 mb-2">Student Calculator</h3>
+                            <p class="text-gray-600 text-sm md:text-base">Quickly convert your CGPA/CPI to Percentage and calculate raw score percentages.</p>
                         </div>
                         <div onclick="switchPage('guide-view')" class="p-6 bg-yellow-50 rounded-xl shadow-md hover:shadow-lg transition duration-300 cursor-pointer border border-yellow-200">
-                            <h3 class="text-2xl font-bold text-yellow-700 mb-2">Time Management</h3>
-                            <p class="text-gray-600">Learn practical routines and steps to organize your study schedule and life.</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-yellow-700 mb-2">Time Management</h3>
+                            <p class="text-gray-600 text-sm md:text-base">Learn practical routines and steps to organize your study schedule and life.</p>
                         </div>
                         <!-- Empty placeholder to maintain grid alignment -->
-                        <div class="p-6 rounded-xl border border-dashed border-gray-300 text-gray-500 flex items-center justify-center">
+                        <div class="p-6 rounded-xl border border-dashed border-gray-300 text-gray-500 flex items-center justify-center text-sm md:text-base">
                             Extra tool space
                         </div>
                     </div>
@@ -104,26 +150,27 @@
                     <p class="text-center text-gray-500 mb-8">Manage your study time and take breaks efficiently.</p>
 
                     <!-- Timer Mode Selector -->
-                    <div class="flex justify-center space-x-2 bg-gray-100 p-2 rounded-xl mb-8">
-                        <button id="timer-focus-btn" data-time="25" class="timer-mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition duration-200 bg-red-600 text-white shadow-md">Focus (25m)</button>
-                        <button id="timer-break-btn" data-time="5" class="timer-mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition duration-200 text-gray-700 hover:bg-red-100">Short Break (5m)</button>
-                        <button id="timer-long-break-btn" data-time="15" class="timer-mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition duration-200 text-gray-700 hover:bg-red-100">Long Break (15m)</button>
+                    <div class="flex justify-center flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-8">
+                        <button id="timer-focus-btn" data-time="25" class="timer-mode-btn px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg transition duration-200 bg-red-600 text-white shadow-md">Focus (25m)</button>
+                        <button id="timer-break-btn" data-time="5" class="timer-mode-btn px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg transition duration-200 text-gray-700 hover:bg-red-100">Short Break (5m)</button>
+                        <button id="timer-long-break-btn" data-time="15" class="timer-mode-btn px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg transition duration-200 text-gray-700 hover:bg-red-100">Long Break (15m)</button>
                     </div>
 
                     <!-- Timer Display -->
                     <div class="text-center mb-10">
-                        <div id="timer-display" class="text-8xl md:text-9xl font-extrabold text-red-700 tracking-tighter">
+                        <!-- ID: timer-display styling is defined in the <style> block for responsiveness -->
+                        <div id="timer-display" class="font-extrabold text-red-700 tracking-tighter">
                             25:00
                         </div>
-                        <p id="timer-status-message" class="text-xl font-semibold text-gray-600 mt-2">Ready to focus!</p>
+                        <p id="timer-status-message" class="text-lg md:text-xl font-semibold text-gray-600 mt-4">Ready to focus!</p>
                     </div>
 
                     <!-- Controls -->
                     <div class="flex justify-center space-x-4">
-                        <button id="timer-start-pause-btn" class="flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                        <button id="timer-start-pause-btn" class="flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 sm:px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
                             <span id="timer-start-pause-text">START</span>
                         </button>
-                        <button id="timer-reset-btn" class="flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                        <button id="timer-reset-btn" class="flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 sm:px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
                             RESET
                         </button>
                     </div>
@@ -153,7 +200,7 @@
                                 
                                 <div class="bg-white p-4 rounded-lg border border-green-300 flex justify-between items-center">
                                     <span class="text-base font-medium text-gray-700">Equivalent Percentage:</span>
-                                    <span id="calc-percent-result" class="text-3xl font-extrabold text-green-700">0.00%</span>
+                                    <span id="calc-percent-result" class="text-2xl sm:text-3xl font-extrabold text-green-700">0.00%</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2 text-center">Note: The standard conversion factor is often $9.5$, but verify with your university.</p>
                             </div>
@@ -175,7 +222,7 @@
                                 
                                 <div class="bg-white p-4 rounded-lg border border-green-300 flex justify-between items-center">
                                     <span class="text-base font-medium text-gray-700">Calculated Percentage:</span>
-                                    <span id="calc-raw-percent-result" class="text-3xl font-extrabold text-green-700">0.00%</span>
+                                    <span id="calc-raw-percent-result" class="text-2xl sm:text-3xl font-extrabold text-green-700">0.00%</span>
                                 </div>
                             </div>
                         </div>
@@ -183,8 +230,8 @@
                 </section>
 
                 <!-- 4. Time Management Guide View -->
-                <section id="guide-view" class="page-view hidden w-full mx-auto bg-white rounded-3xl shadow-xl p-8 border-t-8 border-yellow-500">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Effective Time Management for Students</h2>
+                <section id="guide-view" class="page-view hidden w-full mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 border-t-8 border-yellow-500">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">Effective Time Management for Students</h2>
                     
                     <div class="space-y-8 text-gray-700">
                         <p>Mastering time management is key to reducing stress and maximizing academic performance. Follow these structured steps to build a powerful routine.</p>
@@ -192,7 +239,7 @@
                         <!-- Step-by-Step Guide -->
                         <div class="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
                             <h3 class="text-xl font-bold text-yellow-700 mb-4">The 4-Step Time Management Routine</h3>
-                            <ol class="list-decimal list-inside space-y-3 pl-4">
+                            <ol class="list-decimal list-inside space-y-3 pl-4 text-sm sm:text-base">
                                 <li>
                                     <span class="font-semibold">Capture and Prioritize:</span> At the start of the week, list every task (assignments, readings, chores). Use the **Eisenhower Matrix** (Urgent/Important) to rank them.
                                 </li>
@@ -211,7 +258,7 @@
                         <!-- Daily Routine -->
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-md">
                             <h3 class="text-xl font-bold text-gray-800 mb-4">Sample Ideal Student Daily Routine</h3>
-                            <ul class="space-y-2">
+                            <ul class="space-y-2 text-sm sm:text-base">
                                 <li class="flex items-center"><span class="font-bold w-20 text-yellow-600">7:00 AM:</span> Wake up, light exercise, quick review of daily goals.</li>
                                 <li class="flex items-center"><span class="font-bold w-20 text-yellow-600">8:00 AM:</span> High-priority, deep-focus study session (before emails/distractions).</li>
                                 <li class="flex items-center"><span class="font-bold w-20 text-yellow-600">12:00 PM:</span> Lunch & short break. Plan afternoon session.</li>
@@ -232,6 +279,38 @@
     <script>
         // --- Core Application Functions ---
 
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        /**
+         * Toggles the visibility of the mobile sidebar and its overlay.
+         */
+        const toggleMobileMenu = () => {
+            const isHidden = sidebar.classList.toggle('-translate-x-full');
+            
+            if (isHidden) {
+                sidebarOverlay.classList.add('hidden');
+                menuIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            } else {
+                sidebarOverlay.classList.remove('hidden');
+                menuIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            }
+        };
+
+        /**
+         * Closes the mobile sidebar if open.
+         */
+        const closeMobileMenu = () => {
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                toggleMobileMenu();
+            }
+        };
+
         /**
          * Switches the active page view and updates navigation styling.
          * @param {string} pageId - The ID of the section to show (e.g., 'home-view').
@@ -251,6 +330,11 @@
             if (activeBtn) {
                 activeBtn.classList.add('bg-blue-100', 'text-blue-700');
                 activeBtn.classList.remove('text-gray-700', 'hover:bg-blue-50');
+            }
+            
+            // Close mobile menu after selecting a page
+            if (window.innerWidth < 1024) {
+                closeMobileMenu();
             }
             
             // Re-run initialization logic for the activated view
@@ -304,10 +388,14 @@
             });
         };
 
-        // Initial setup for navigation buttons
+        // Initial setup for navigation buttons and mobile toggle
         document.querySelectorAll('.nav-btn').forEach(button => {
             button.addEventListener('click', (e) => switchPage(e.currentTarget.dataset.page));
         });
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        }
 
 
         // --- 2. Focus Timer Logic (timer-view) ---
