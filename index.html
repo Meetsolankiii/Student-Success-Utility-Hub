@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Success Utility Hub</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Base styles for responsiveness and utility */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f0f4f8; 
-            overflow-x: hidden; /* Prevent horizontal scroll on mobile menu slide */
+            overflow-x: hidden; /* Prevent horizontal scroll when mobile menu opens */
         }
         
-        /* Mobile Timer Display Optimization */
+        /* Mobile Timer Display Optimization - ensures fixed width font */
         #timer-display { 
             font-variant-numeric: tabular-nums; 
             font-size: 5rem; /* Default for small screens */
@@ -30,7 +32,7 @@
             #timer-display { font-size: 9rem; }
         }
 
-        /* Input field clean up */
+        /* Input field clean up for number types */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -38,8 +40,7 @@
         }
         input[type="number"] { -moz-appearance: textfield; }
         
-        /* Hide sidebar on mobile by default (controlled by JS toggle) */
-        /* On desktop, keep it fixed */
+        /* Custom styles for desktop sidebar (overrides Tailwind fixed positioning for clarity) */
         @media (min-width: 1024px) {
             #sidebar {
                 position: fixed;
@@ -53,7 +54,7 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- Mobile Header/Toggle Bar -->
+    <!-- Mobile Header/Toggle Bar (Only visible on screens smaller than large (lg)) -->
     <header class="lg:hidden bg-blue-700 text-white p-4 shadow-xl flex justify-between items-center sticky top-0 z-20">
         <h1 class="text-xl font-extrabold">Student Hub</h1>
         <button id="mobile-menu-toggle" class="p-2 rounded-lg bg-blue-600 hover:bg-blue-800 transition duration-150 transform active:scale-95">
@@ -69,19 +70,12 @@
     </header>
 
     <div class="lg:flex">
-<<<<<<< HEAD
         <!-- Sidebar Navigation (Responsive: Fixed Off-Canvas on Mobile, Fixed On-Screen on Desktop) -->
         <nav id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 border-r p-4 shadow-2xl z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
             
-            <!-- Desktop Title -->
+            <!-- Desktop Title (Hidden on mobile as mobile header has the title) -->
             <h1 class="hidden lg:block text-2xl font-extrabold text-blue-700 mb-6 text-center lg:text-left">
                 Student Hub
-=======
-        <!-- Sidebar Navigation -->
-        <nav id="sidebar" class="bg-white lg:w-64 border-b lg:border-r lg:border-b-0 p-4 shadow-lg lg:shadow-xl z-10">
-            <h1 class="text-2xl font-extrabold text-blue-700 mb-6 text-center lg:text-left">
-                student Hub
->>>>>>> e1186e780f0a8c11d6ddbc136a3e0e97bff294b6
             </h1>
             
             <div class="flex flex-col space-y-2 pt-10 lg:pt-0">
@@ -104,10 +98,10 @@
             </div>
         </nav>
 
-        <!-- Overlay for mobile menu -->
+        <!-- Overlay for mobile menu (hides content when sidebar is open on mobile) -->
         <div id="sidebar-overlay" class="hidden lg:hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-20" onclick="toggleMobileMenu()"></div>
 
-        <!-- Main Content Area -->
+        <!-- Main Content Area (ml-64 moves content out of the way of the fixed desktop sidebar) -->
         <main class="flex-grow p-4 pt-4 lg:ml-64 lg:p-10">
             <div class="max-w-3xl mx-auto">
                 
@@ -296,13 +290,16 @@
          * Toggles the visibility of the mobile sidebar and its overlay.
          */
         const toggleMobileMenu = () => {
+            // Check if sidebar contains the class for being hidden
             const isHidden = sidebar.classList.toggle('-translate-x-full');
             
             if (isHidden) {
+                // Sidebar is now hidden
                 sidebarOverlay.classList.add('hidden');
                 menuIcon.classList.remove('hidden');
                 closeIcon.classList.add('hidden');
             } else {
+                // Sidebar is now visible
                 sidebarOverlay.classList.remove('hidden');
                 menuIcon.classList.add('hidden');
                 closeIcon.classList.remove('hidden');
@@ -313,8 +310,12 @@
          * Closes the mobile sidebar if open.
          */
         const closeMobileMenu = () => {
-            if (!sidebar.classList.contains('-translate-x-full')) {
-                toggleMobileMenu();
+            // Check if screen width is less than the large breakpoint (1024px)
+            if (window.innerWidth < 1024) {
+                // Check if the sidebar is visible (does NOT contain -translate-x-full)
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileMenu();
+                }
             }
         };
 
@@ -323,11 +324,14 @@
          * @param {string} pageId - The ID of the section to show (e.g., 'home-view').
          */
         const switchPage = (pageId) => {
+            // Hide all pages
             document.querySelectorAll('.page-view').forEach(view => {
                 view.classList.add('hidden');
             });
+            // Show the target page
             document.getElementById(pageId).classList.remove('hidden');
 
+            // Update navigation button styles
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-blue-100', 'text-blue-700');
                 btn.classList.add('text-gray-700', 'hover:bg-blue-50');
@@ -340,11 +344,9 @@
             }
             
             // Close mobile menu after selecting a page
-            if (window.innerWidth < 1024) {
-                closeMobileMenu();
-            }
+            closeMobileMenu();
             
-            // Re-run initialization logic for the activated view
+            // Re-run initialization logic for the activated view (important for recalculating if inputs are filled)
             if (pageId === 'calculator-view') {
                 calc_gpaToPercent();
                 calc_rawScorePercent();
@@ -378,6 +380,7 @@
 
                 const confirmAction = () => {
                     modal.classList.add('hidden');
+                    // Remove listeners to prevent memory leaks/double-firing
                     document.getElementById('modal-confirm').removeEventListener('click', confirmAction);
                     document.getElementById('modal-cancel').removeEventListener('click', cancelAction);
                     resolve(true);
@@ -385,6 +388,7 @@
 
                 const cancelAction = () => {
                     modal.classList.add('hidden');
+                    // Remove listeners
                     document.getElementById('modal-confirm').removeEventListener('click', confirmAction);
                     document.getElementById('modal-cancel').removeEventListener('click', cancelAction);
                     resolve(false);
@@ -441,8 +445,11 @@
                 clearInterval(timer_intervalId);
                 timer_isRunning = false;
                 timerStartPauseBtn.innerHTML = 'START';
+                timerStartPauseBtn.classList.replace('bg-yellow-500', 'bg-green-500'); // Ensure color reset
+                
                 timerStatusMessage.textContent = `${timer_currentMode} complete! Time for a change.`;
                 timerAlarmSound.play();
+                alertMessage(`Time's up! Take a ${timer_currentMode.includes('Focus') ? 'break' : 'focus'} session.`, 'bg-red-500 text-white');
                 
                 // Switch mode after completion
                 if (timer_currentMode.includes('Focus')) {
@@ -450,6 +457,9 @@
                 } else {
                     timer_setMode(document.getElementById('timer-focus-btn'));
                 }
+                
+                // Automatically start the next session after a short delay (optional, but good for flow)
+                setTimeout(timer_toggleTimer, 1500);
             }
         };
 
@@ -459,12 +469,21 @@
                 timer_isRunning = false;
                 timerStartPauseBtn.innerHTML = 'RESUME';
                 timerStartPauseBtn.classList.replace('bg-green-500', 'bg-yellow-500');
+                timerStartPauseBtn.classList.replace('hover:bg-green-600', 'hover:bg-yellow-600');
+
                 timerStatusMessage.textContent = `${timer_currentMode} paused.`;
             } else {
+                if (timer_totalSeconds <= 0) {
+                     // If timer ran out, reset to default time for current mode before starting
+                    timer_totalSeconds = timer_defaultTime;
+                    timer_updateDisplay();
+                }
+
                 timer_intervalId = setInterval(timer_tick, 1000);
                 timer_isRunning = true;
                 timerStartPauseBtn.innerHTML = 'PAUSE';
                 timerStartPauseBtn.classList.replace('bg-yellow-500', 'bg-green-500');
+                timerStartPauseBtn.classList.replace('hover:bg-yellow-600', 'hover:bg-green-600');
                 timerStatusMessage.textContent = `Time to ${timer_currentMode.toLowerCase()}!`;
             }
         };
@@ -475,21 +494,43 @@
             timer_totalSeconds = timer_defaultTime;
             timerStartPauseBtn.innerHTML = 'START';
             timerStartPauseBtn.classList.replace('bg-yellow-500', 'bg-green-500');
+            timerStartPauseBtn.classList.replace('hover:bg-yellow-600', 'hover:bg-green-600');
+
             timer_updateDisplay();
             timerStatusMessage.textContent = `Ready for ${timer_currentMode.toLowerCase()}!`;
+            timerAlarmSound.pause();
+            timerAlarmSound.currentTime = 0; // Rewind sound
         };
         
         const timer_setMode = (button) => {
+            // Confirm with user if timer is running before changing mode
+            if (timer_isRunning) {
+                customConfirm("Change Mode?", "Switching modes will reset the current timer. Are you sure?").then(confirmed => {
+                    if (confirmed) {
+                        timer_performModeSwitch(button);
+                    } else {
+                        // User canceled, do nothing
+                    }
+                });
+            } else {
+                 timer_performModeSwitch(button);
+            }
+        }
+
+        const timer_performModeSwitch = (button) => {
             clearInterval(timer_intervalId);
             timer_isRunning = false;
             timerStartPauseBtn.innerHTML = 'START';
             timerStartPauseBtn.classList.replace('bg-yellow-500', 'bg-green-500');
+            timerStartPauseBtn.classList.replace('hover:bg-yellow-600', 'hover:bg-green-600');
+
 
             const minutes = parseInt(button.dataset.time) || 25;
             timer_defaultTime = minutes * 60;
             timer_totalSeconds = timer_defaultTime;
             timer_currentMode = button.textContent.split('(')[0].trim();
             
+            // Update button styling
             timerModeButtons.forEach(btn => {
                 btn.classList.remove('bg-red-600', 'text-white', 'shadow-md');
                 btn.classList.add('text-gray-700', 'hover:bg-red-100');
@@ -517,50 +558,62 @@
         const calcTotalMarksInput = document.getElementById('calc-total-marks');
         const calcRawPercentResult = document.getElementById('calc-raw-percent-result');
 
+        /**
+         * Calculates percentage using the CGPA * Factor conversion formula.
+         */
         const calc_gpaToPercent = () => {
             const gpa = parseFloat(calcGpaInput.value);
             const factor = parseFloat(calcFactorInput.value);
-
+            
             if (isNaN(gpa) || isNaN(factor) || gpa < 0 || factor <= 0) {
                 calcPercentResult.textContent = '0.00%';
                 return;
             }
-
-            const percentage = gpa * factor;
-            calcPercentResult.textContent = `${Math.min(percentage, 100).toFixed(2)}%`;
+            
+            // Formula: Percentage = GPA * Conversion Factor
+            let percentage = gpa * factor;
+            
+            // Cap percentage at 100%
+            percentage = Math.min(100, percentage); 
+            
+            calcPercentResult.textContent = `${percentage.toFixed(2)}%`;
         };
 
+        /**
+         * Calculates raw percentage using Obtained Marks / Total Marks formula.
+         */
         const calc_rawScorePercent = () => {
             const obtained = parseFloat(calcMarksObtainedInput.value);
             const total = parseFloat(calcTotalMarksInput.value);
-
-            if (isNaN(obtained) || isNaN(total) || obtained < 0 || total <= 0) {
+            
+            if (isNaN(obtained) || isNaN(total) || obtained < 0 || total <= 0 || obtained > total) {
                 calcRawPercentResult.textContent = '0.00%';
                 return;
             }
-
+            
+            // Formula: Percentage = (Obtained Marks / Total Marks) * 100
             const percentage = (obtained / total) * 100;
-            calcRawPercentResult.textContent = `${Math.min(percentage, 100).toFixed(2)}%`;
+            
+            calcRawPercentResult.textContent = `${percentage.toFixed(2)}%`;
         };
 
-        const calcInputs = [calcGpaInput, calcFactorInput, calcMarksObtainedInput, calcTotalMarksInput];
-        calcInputs.forEach(input => {
-            input.addEventListener('input', () => {
-                calc_gpaToPercent();
-                calc_rawScorePercent();
-            });
-        });
+        // Attach input event listeners for real-time calculation updates
+        if (calcGpaInput && calcFactorInput) {
+            calcGpaInput.addEventListener('input', calc_gpaToPercent);
+            calcFactorInput.addEventListener('input', calc_gpaToPercent);
+        }
+        if (calcMarksObtainedInput && calcTotalMarksInput) {
+            calcMarksObtainedInput.addEventListener('input', calc_rawScorePercent);
+            calcTotalMarksInput.addEventListener('input', calc_rawScorePercent);
+        }
 
-
-        // --- Overall App Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Timer to default state
+        // --- Initialization ---
+        
+        window.onload = () => {
+            // Set initial display for timer and activate the first page
             timer_updateDisplay();
-            
-            // Start on the home view
-            switchPage('home-view');
-        });
-
+            switchPage('home-view'); 
+        };
     </script>
 </body>
 </html>
